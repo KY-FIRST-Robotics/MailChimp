@@ -4,6 +4,9 @@ import pandas as pd
 import os
 
 
+def process_file(filepath):
+    df = pd.read_csv(filepath, encoding="ISO-8859-1") # Initalizes DataFrame for working with spreadsheet, ensures file can be encoded and opened
+
 def launch_gui():
     root = tk.Tk()
     root.withdraw() # Hides default window
