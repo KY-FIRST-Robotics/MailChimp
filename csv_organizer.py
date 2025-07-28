@@ -12,6 +12,13 @@ def process_file(filepath):
     df = pd.read_csv(filepath, encoding="ISO-8859-1") # Initalizes DataFrame for working with spreadsheet, ensures file can be encoded and opened
     active_teams = df[df["Active Team"].str.strip() == "Active"] # Filters out inactive teams
 
+    contacts = []
+
+    for _, row in active_teams.iterrows(): # Iterates through Excel spreadsheet rows
+        program = str(row.get("Program", "")).strip().upper()
+        team_num = str(int(row["Team Number"])) if pd.notna(row["Team Number"]) else "" 
+        team_id = f"{program}{team_num}"
+
 def launch_gui():
     root = tk.Tk()
     root.withdraw() # Hides default window
