@@ -82,7 +82,13 @@ def process_file(filepath):
     
     output_rows = []
     for person in email_dict.values(): #Loop through every contact's information (record)
-        
+        teams = list(contact["Team IDs"]) # Converts Team IDs to a list
+        programs = list(person["Programs"])
+        tags = []
+        affiliations = []
+        for prog in programs:
+            tags.extend([prog, f"{prog} coach"]) # Adds coach to end of their program (FTC or FRC) for MailChimp tags
+            affiliations.append(f"{prog} Coach/Mentor") # Adds Coach/Mentor to program(s) for MailChimp Affiliations
 
 
 
