@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import pandas as pd
 import os
+from collections import defaultdict
 
 
 def split_name(name):
@@ -52,6 +53,37 @@ def process_file(filepath):
                 "Programs": [program]
             }
             contacts.append(contact)
+
+    email_dict = defaultdict(lambda: { # Ensures contacts aren't added multiple times
+        "Email Address": "",
+        "First Name": "",
+        "Last name": "",
+        "City": "",
+        "County": "",
+        "Zip Code": "",
+        "Country": "USA",
+        "State": "",
+        "Team IDs": set(), # Sets ensure no duplicates are added to contact's information
+        "Programs": set()
+    })
+
+    for c in contacts: # Adds contacts to record
+        email = c["Email Address"]
+        record = email_dict[email] # References one's email as the start of a new contact's record
+        record["Email Address"] = email
+        record["First Name"] = c["First Name"]
+        record["Last name"] = c["Last name"]
+        record["City"] = c["City"]
+        record["County"] = c["County"]
+        record["Zip Code"] = c["Zip Code"]
+        record["State"] = c["State"]
+        record["Team IDs"].update(c["Team IDs"]) # Updates Team IDs so multiple team numbers can be added without duplication of existing ones
+        record["Programs"].update(c["Programs"]) # Updates existing program to avoid duplications
+    
+    output_rows = []
+    for person in email_dict.values(): #Loop through every contact's information (record)
+        
+
 
 
 def launch_gui():
