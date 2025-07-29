@@ -47,7 +47,7 @@ def process_file(filepath):
                 "City": row.get("Team City", ""),
                 "County": row.get("Team County", ""),
                 "Zip Code": row.get("Team Postal Code", ""),
-                "Country": "USA",
+                "Country": row.get("Team Country", ""),
                 "State": row.get("Team State Province", ""),
                 "Team IDs": [team_id],
                 "Programs": [program]
@@ -61,7 +61,7 @@ def process_file(filepath):
         "City": "",
         "County": "",
         "Zip Code": "",
-        "Country": "USA",
+        "Country": "",
         "State": "",
         "Team IDs": set(), # Sets ensure no duplicates are added to contact's information
         "Programs": set()
@@ -76,19 +76,44 @@ def process_file(filepath):
         record["City"] = c["City"]
         record["County"] = c["County"]
         record["Zip Code"] = c["Zip Code"]
+        record["Country"] = c["Country"]
         record["State"] = c["State"]
         record["Team IDs"].update(c["Team IDs"]) # Updates Team IDs so multiple team numbers can be added without duplication of existing ones
         record["Programs"].update(c["Programs"]) # Updates existing program to avoid duplications
     
     output_rows = []
-    for person in email_dict.values(): #Loop through every contact's information (record)
+    for contact in email_dict.values(): #Loop through every contact's information (record)
         teams = list(contact["Team IDs"]) # Converts Team IDs to a list
-        programs = list(person["Programs"])
+        programs = list(contact["Programs"])
         tags = []
         affiliations = []
         for prog in programs:
             tags.extend([prog, f"{prog} coach"]) # Adds coach to end of their program (FTC or FRC) for MailChimp tags
             affiliations.append(f"{prog} Coach/Mentor") # Adds Coach/Mentor to program(s) for MailChimp Affiliations
+            
+            row = {
+    "Email Address": contact["Email Address"],
+    "First Name": contact["First Name"],
+    "Last name": contact["Last name"],
+    "Affiliation": ", ".join(affiliations), # Join strings together in case of multiple affiliations
+    "City": contact["City"],
+    "County": contact["County"],
+    "Zip Code": contact["Zip Code"],
+    "Team 1 Type & Number": teams[0] if len(teams) > 0 else "", # Adds multiple teams, leaves nonexistent teams empty
+    "Team 2 Type & Number": teams[1] if len(teams) > 1 else "",
+    "Team 3 Type & Number": teams[2] if len(teams) > 2 else "",
+    "Team 4 Type & Number": teams[3] if len(teams) > 3 else "",
+    "Country": contact["Country"],
+    "State": contact["State"],
+    "Tags": ", ".join(tags)
+}
+
+        output_rows.append(row) # Adds this row to list of all rows
+
+    output_df = pd.DataFrame(output_rows) # Converts rows into panda DataFrame
+    output_file = os.path.join(os.path.dirname(filepath), "mailchimp_contacts.csv") # Constructs path for saving file in the same folder as original file, but renamed
+    output_df.to_csv(output_file, index=False) # Saves DataFrame as CSV file
+    return output_file # Shows success message and where file was saved
 
 
 
