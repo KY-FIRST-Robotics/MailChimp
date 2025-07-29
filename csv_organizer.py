@@ -3,32 +3,68 @@ from tkinter import filedialog, messagebox
 import pandas as pd
 import os
 
+
 def split_name(name):
-    if pd.isna(name): return "", "" # Returns empty string if LC1, LC2, or Admin name is missing
-    parts = name.strip().split() # Separates first and last name, strips whitespace
-    return parts[0], " ".join(parts[1:]) if len(parts) > 1 else "" # Returns first and last name, returns last name as empty if there is only the first name
+    if pd.isna(name):
+        return "", ""  # Returns empty string if LC1, LC2, or Admin name is missing
+    parts = name.strip().split()  # Separates first and last name, strips whitespace
+    return parts[0], (
+        " ".join(parts[1:]) if len(parts) > 1 else ""
+    )  # Returns first and last name, returns last name as empty if there is only the first name
+
 
 def process_file(filepath):
-    df = pd.read_csv(filepath, encoding="ISO-8859-1") # Initalizes DataFrame for working with spreadsheet, ensures file can be encoded and opened
-    active_teams = df[df["Active Team"].str.strip() == "Active"] # Filters out inactive teams
+    df = pd.read_csv(
+        filepath, encoding="ISO-8859-1"
+    )  # Initalizes DataFrame for working with spreadsheet, ensures file can be encoded and opened
+    active_teams = df[
+        df["Active Team"].str.strip() == "Active"
+    ]  # Filters out inactive teams
 
     contacts = []
 
-    for _, row in active_teams.iterrows(): # Iterates through Excel spreadsheet rows
+    for _, row in active_teams.iterrows():  # Iterates through Excel spreadsheet rows
         program = str(row.get("Program", "")).strip().upper()
-        team_num = str(int(row["Team Number"])) if pd.notna(row["Team Number"]) else "" 
+        team_num = str(int(row["Team Number"])) if pd.notna(row["Team Number"]) else ""
         team_id = f"{program}{team_num}"
+
+        for role in [
+            ("LC1", "LC1 Name", "LC1 Email"),
+            ("LC2", "LC2 Name", "LC2 Email"),
+            ("Admin", "Team Admin Name", "Team Admin Email"),
+        ]:
+            _, name_col, email_col = role
+            if pd.isna(row.get(email_col)) or row[email_col] == "":
+                continue
+
+            email = row[email_col]
+            first, last = split_name(row.get(name_col, ""))
+            contact = {
+                "Email Address": email,
+                "First Name": first,
+                "Last name": last,
+                "City": row.get("Team City", ""),
+                "County": row.get("Team County", ""),
+                "Zip Code": row.get("Team Postal Code", ""),
+                "Country": "USA",
+                "State": row.get("Team State Province", ""),
+                "Team IDs": [team_id],
+                "Programs": [program]
+            }
+            contacts.append(contact)
+
 
 def launch_gui():
     root = tk.Tk()
-    root.withdraw() # Hides default window
+    root.withdraw()  # Hides default window
 
-    file_path = filedialog.askopenfilename( # Opens file selection and returns path to the selected file as a string
+    file_path = filedialog.askopenfilename(  # Opens file selection and returns path to the selected file as a string
         title="Select CSV file from FIRST Tableu to modify for MailChimp",
-        filetypes=[("CSV Files", "*.csv")]
+        filetypes=[("CSV Files", "*.csv")],
     )
     if not file_path:
-        return # Prevents program from crashing when dialog is cancelled
+        return  # Prevents program from crashing when dialog is cancelled
+
 
 if __name__ == "__main__":
     launch_gui()
