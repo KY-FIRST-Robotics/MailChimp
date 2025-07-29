@@ -127,6 +127,12 @@ def launch_gui():
     )
     if not file_path:
         return  # Prevents program from crashing when dialog is cancelled
+    
+    try:
+        out_file = process_file(file_path) # Returns path to new file
+        messagebox.showinfo("Success", f"Mailchimp contacts saved to:\n{out_file}")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to process file:\n{e}")
 
 
 if __name__ == "__main__":
