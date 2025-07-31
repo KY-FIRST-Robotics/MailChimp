@@ -115,6 +115,29 @@ def process_file(filepath):
     output_df.to_csv(output_file, index=False) # Saves DataFrame as CSV file
     return output_file # Shows success message and where file was saved
 
+def process_txt_file(filepath):
+    df = pd.read_csv(filepath, sep="\t", encoding="utf-16")
+
+    email_dict = defaultdict(lambda: {
+            "Email Address": "",
+            "First Name": "",
+            "Last name": "",
+            "Affiliation": "Volunteer",
+            "City": "",
+            "Zip Code": "",
+            "Country": "",
+            "State": "",
+            "Tags": set()
+        })
+    for _, row in df.iterrows():
+            email = str(row.get("Email", "")).strip().lower()
+            if not email:
+                continue
+
+
+
+    
+
 
 
 def launch_gui():
