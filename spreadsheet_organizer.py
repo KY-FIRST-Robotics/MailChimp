@@ -120,7 +120,7 @@ def process_txt_file(filepath):
         df = pd.read_csv(filepath, sep="\t", encoding="utf-16")
         df.columns = df.columns.str.strip()  # Remove spaces from column headers
 
-        email_dict = defaultdict(lambda: {
+        email_dict = defaultdict(lambda: { # Stores records of contacts
             "Email Address": "",
             "First Name": "",
             "Last name": "",
@@ -134,7 +134,7 @@ def process_txt_file(filepath):
 
         for _, row in df.iterrows():
             email = str(row.get("Email", "")).strip().lower()
-            if not email:
+            if not email: # Ensures no duplication of contacts
                 continue
 
             record = email_dict[email]
@@ -148,7 +148,7 @@ def process_txt_file(filepath):
 
             employer = row.get("Current Employer", "")
             if pd.notna(employer) and employer.strip():
-                record["Affiliation"] = f"Volunteer, {employer.strip()}"
+                record["Affiliation"] = f"Volunteer, {employer.strip()}" # Adds volunteer and current employer to affiliation
 
             # Tags
             program = row.get("Program", "").strip().upper()
@@ -156,7 +156,7 @@ def process_txt_file(filepath):
                 print(f"PROGRAM VALUE: '{row.get('Program')}' → '{program}'")
                 record["Tags"].add(program)
 
-            roles = str(row.get("Volunteer Roles", "")).lower()
+            roles = str(row.get("Volunteer Roles", "")).lower() # Gets tags from Volunteer Roles column
             if "judge" in roles:
                 record["Tags"].add("Judge")
             if "referee" in roles:
@@ -167,7 +167,7 @@ def process_txt_file(filepath):
                 record["Tags"].add("CSA")
 
 
-        output_rows = []
+        output_rows = [] # Final outputted rows
         for record in email_dict.values():
             output_rows.append({
                 "Email Address": record["Email Address"],
