@@ -153,7 +153,6 @@ def process_txt_file(filepath):
             # Tags
             program = row.get("Program", "").strip().upper()
             if program:
-                print(f"PROGRAM VALUE: '{row.get('Program')}' → '{program}'")
                 record["Tags"].add(program)
 
             roles = str(row.get("Volunteer Roles", "")).lower() # Gets tags from Volunteer Roles column
@@ -190,37 +189,32 @@ def process_txt_file(filepath):
         raise RuntimeError(f"Failed to process volunteer file: {e}")
 
 
-
-
-
-
-
-
-
-    
-
-
-
 def launch_gui():
     root = tk.Tk()
-    root.withdraw()  # Hides default window
+    root.title("MailChimp Contact Processor")
+    root.geometry("400x150")
 
-    file_path = filedialog.askopenfilename(  # Opens file selection and returns path to the selected file as a string
-        title="Select CSV file from FIRST Tableu or .txt volunteer file to modify for MailChimp",
-        filetypes=[("CSV or TXT Files", "*.csv *.txt"), ("CSV Files", "*.csv"), ("Text Files", "*.txt")],
-    )
-    if not file_path:
-        return  # Prevents program from crashing when dialog is cancelled
-    
-    try:
-        if file_path.lower().endswith(".txt"):
-            out_file = process_txt_file(file_path)
-        else:
-            out_file = process_file(file_path)
-        messagebox.showinfo("Success", f"Mailchimp contacts saved to:\n{out_file}")
-    except Exception as e:
-        messagebox.showerror("Error", f"Failed to process file:\n{e}")
+    def select_file():
+        file_path = filedialog.askopenfilename(
+            title="Select CSV or TXT file to modify for MailChimp",
+            filetypes=[("CSV or TXT Files", "*.csv *.txt"), ("CSV Files", "*.csv"), ("Text Files", "*.txt")],
+        )
+        if not file_path:
+            return
+        try:
+            if file_path.lower().endswith(".txt"):
+                out_file = process_txt_file(file_path)
+            else:
+                out_file = process_file(file_path)
+            messagebox.showinfo("Success", f"Mailchimp contacts saved to:\n{out_file}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to process file:\n{e}")
 
+    btn = tk.Button(root, text="Select File to Process", command=select_file)
+    btn.pack(pady=40)
+
+    root.mainloop()
 
 if __name__ == "__main__":
     launch_gui()
+
