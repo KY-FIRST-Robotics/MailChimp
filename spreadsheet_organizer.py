@@ -14,7 +14,7 @@ def split_name(name):
     )  # Returns first and last name, returns last name as empty if there is only the first name
 
 
-def process_file(filepath):
+def process_file(filepath): # Processes CSV File
     df = pd.read_csv(
         filepath, encoding="ISO-8859-1"
     )  # Initalizes DataFrame for working with spreadsheet, ensures file can be encoded and opened
@@ -118,74 +118,77 @@ def process_file(filepath):
 def process_txt_file(filepath):
     try:
         df = pd.read_csv(filepath, sep="\t", encoding="utf-16")
-        df.columns = df.columns.str.strip() # Remove spaces from column headers
+        df.columns = df.columns.str.strip()  # Remove spaces from column headers
 
-        email_dict = defaultdict(lambda: { # Holds contact records
-                "Email Address": "",
-                "First Name": "",
-                "Last name": "",
-                "Affiliation": "Volunteer",
-                "City": "",
-                "Zip Code": "",
-                "Country": "",
-                "State": "",
-                "Tags": set()
-            })
+        email_dict = defaultdict(lambda: {
+            "Email Address": "",
+            "First Name": "",
+            "Last name": "",
+            "Affiliation": "Volunteer",
+            "City": "",
+            "Zip Code": "",
+            "Country": "",
+            "State": "",
+            "Tags": set()
+        })
+
         for _, row in df.iterrows():
-                email = str(row.get("Email", "")).strip().lower() 
-                if not email: # Skips contacts if no email, ensures no duplicate contacts
-                    continue
-                    
-                record = email_dict[email]
-                record["Email Address"] = email
-                record["First Name"] = row.get("Preferred Name", "").strip()
-                record["Last name"] = row.get("Last Name", "").strip()
-                record["City"] = row.get("City", "").strip()
-                record["Zip Code"] = str(row.get("Postalcode", "")).strip()
-                record["Country"] = row.get("Country", "").strip()
-                record["State"] = row.get("State/Province", "").strip()
+            email = str(row.get("Email", "")).strip().lower()
+            if not email:
+                continue
 
-                employer = row.get("Current Employer", "")
-                if pd.notna(employer) and employer.strip():
-                    record["Affiliation"] = f"Volunteer, {employer.strip()}" # Adds Volunteer and current employer to affiliation 
+            record = email_dict[email]
+            record["Email Address"] = email
+            record["First Name"] = row.get("Preferred Name", "").strip()
+            record["Last name"] = row.get("Last Name", "").strip()
+            record["City"] = row.get("City", "").strip()
+            record["Zip Code"] = str(row.get("Postalcode", "")).strip()
+            record["Country"] = row.get("Country", "").strip()
+            record["State"] = row.get("State/Province", "").strip()
 
-                # Tags
-                program = row.get("Program", "").strip().upper()
-                if program:
-                    record["Tags"].add(program)
+            employer = row.get("Current Employer", "")
+            if pd.notna(employer) and employer.strip():
+                record["Affiliation"] = f"Volunteer, {employer.strip()}"
 
-                roles = str(row.get("Volunteer Roles", "")).lower() # Gets tags from Volunteer Roles column
-                if "judge" in roles:
-                    record["Tags"].add("Judge")
-                if "referee" in roles:
-                    record["Tags"].add("Referee")
-                if "fta" in roles:
-                    record["Tags"].add("FTA")
-                if "csa" in roles:
-                    record["Tags"].add("CSA")
+            # Tags
+            program = row.get("Program", "").strip().upper()
+            if program:
+                print(f"PROGRAM VALUE: '{row.get('Program')}' → '{program}'")
+                record["Tags"].add(program)
 
-                # Final output
-                output_rows = []
-                for record in email_dict.values():
-                    output_rows.append({
-                        "Email Address": record["Email Address"],
-                        "First Name": record["First Name"],
-                        "Last name": record["Last name"],
-                        "Affiliation": record["Affiliation"],
-                        "City": record["City"],
-                        "Zip Code": record["Zip Code"],
-                        "Country": record["Country"],
-                        "State": record["State"],
-                        "Tags": ", ".join(sorted(record["Tags"]))
-                    })
+            roles = str(row.get("Volunteer Roles", "")).lower()
+            if "judge" in roles:
+                record["Tags"].add("Judge")
+            if "referee" in roles:
+                record["Tags"].add("Referee")
+            if "fta" in roles:
+                record["Tags"].add("FTA")
+            if "csa" in roles:
+                record["Tags"].add("CSA")
 
-                output_df = pd.DataFrame(output_rows)
-                output_file = os.path.join(os.path.dirname(filepath), "mailchimp_volunteers.csv")
-                output_df.to_csv(output_file, index=False)
-                return output_file
+
+        output_rows = []
+        for record in email_dict.values():
+            output_rows.append({
+                "Email Address": record["Email Address"],
+                "First Name": record["First Name"],
+                "Last name": record["Last name"],
+                "Affiliation": record["Affiliation"],
+                "City": record["City"],
+                "Zip Code": record["Zip Code"],
+                "Country": record["Country"],
+                "State": record["State"],
+                "Tags": ", ".join(sorted(record["Tags"]))
+            })
+
+        output_df = pd.DataFrame(output_rows)
+        output_file = os.path.join(os.path.dirname(filepath), "mailchimp_volunteers.csv")
+        output_df.to_csv(output_file, index=False)
+        return output_file
 
     except Exception as e:
         raise RuntimeError(f"Failed to process volunteer file: {e}")
+
 
 
 
@@ -203,14 +206,17 @@ def launch_gui():
     root.withdraw()  # Hides default window
 
     file_path = filedialog.askopenfilename(  # Opens file selection and returns path to the selected file as a string
-        title="Select CSV file from FIRST Tableu to modify for MailChimp",
-        filetypes=[("CSV Files", "*.csv")],
+        title="Select CSV file from FIRST Tableu or .txt volunteer file to modify for MailChimp",
+        filetypes=[("CSV or TXT Files", "*.csv *.txt"), ("CSV Files", "*.csv"), ("Text Files", "*.txt")],
     )
     if not file_path:
         return  # Prevents program from crashing when dialog is cancelled
     
     try:
-        out_file = process_file(file_path) # Returns path to new file
+        if file_path.lower().endswith(".txt"):
+            out_file = process_txt_file(file_path)
+        else:
+            out_file = process_file(file_path)
         messagebox.showinfo("Success", f"Mailchimp contacts saved to:\n{out_file}")
     except Exception as e:
         messagebox.showerror("Error", f"Failed to process file:\n{e}")
