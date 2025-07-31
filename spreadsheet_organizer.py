@@ -14,7 +14,7 @@ def split_name(name):
     )  # Returns first and last name, returns last name as empty if there is only the first name
 
 
-def process_file(filepath): # Processes CSV File
+def process_csv_file(filepath): # Processes CSV File
     df = pd.read_csv(
         filepath, encoding="ISO-8859-1"
     )  # Initalizes DataFrame for working with spreadsheet, ensures file can be encoded and opened
@@ -205,7 +205,7 @@ def launch_gui():
             if file_path.lower().endswith(".txt"):
                 out_file = process_txt_file(file_path)
             else:
-                out_file = process_file(file_path)
+                out_file = process_csv_file(file_path)
             messagebox.showinfo("Success", f"Mailchimp contacts saved to:\n{out_file}")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to process file:\n{e}")
