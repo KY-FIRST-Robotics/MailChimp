@@ -117,8 +117,9 @@ def process_file(filepath):
 
 def process_txt_file(filepath):
     df = pd.read_csv(filepath, sep="\t", encoding="utf-16")
+    df.columns = df.columns.str.strip() # Remove spaces from column headers
 
-    email_dict = defaultdict(lambda: {
+    email_dict = defaultdict(lambda: { # Holds contact records
             "Email Address": "",
             "First Name": "",
             "Last name": "",
@@ -130,9 +131,31 @@ def process_txt_file(filepath):
             "Tags": set()
         })
     for _, row in df.iterrows():
-            email = str(row.get("Email", "")).strip().lower()
-            if not email:
+            email = str(row.get("Email", "")).strip().lower() 
+            if not email: # Skips contacts if no email, ensures no duplicate contacts
                 continue
+                
+            record = email_dict[email]
+            record["Email Address"] = email
+            record["First Name"] = row.get("Preferred Name", "").strip()
+            record["Last name"] = row.get("Last Name", "").strip()
+            record["City"] = row.get("City", "").strip()
+            record["Zip Code"] = str(row.get("Postalcode", "")).strip()
+            record["Country"] = row.get("Country", "").strip()
+            record["State"] = row.get("State/Province", "").strip()
+
+            employer = row.get("Current Employer", "")
+            if pd.notna(employer) and employer.strip():
+                record["Affiliation"] = f"Volunteer, {employer.strip()}" # Adds Volunteer and current employer to affiliation 
+
+            # Tags everyone gets
+            program = row.get("Program", "").strip().upper()
+            if program:
+                record["Tags"].add(program)
+
+
+
+
 
 
 
