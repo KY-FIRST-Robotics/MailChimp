@@ -50,26 +50,30 @@ def process_csv_file(filepath): # Processes CSV File
                 "Country": row.get("Team Country", ""),
                 "State": row.get("Team State Province", ""),
                 "Team IDs": [team_id],
-                "Programs": [program]
+                "Programs": [program],
             }
             contacts.append(contact)
 
-    email_dict = defaultdict(lambda: { # Ensures contacts aren't added multiple times
-        "Email Address": "",
-        "First Name": "",
-        "Last name": "",
-        "City": "",
-        "County": "",
-        "Zip Code": "",
-        "Country": "",
-        "State": "",
-        "Team IDs": set(), # Sets ensure no duplicates are added to contact's information
-        "Programs": set()
-    })
+    email_dict = defaultdict(
+        lambda: {  # Ensures contacts aren't added multiple times
+            "Email Address": "",
+            "First Name": "",
+            "Last name": "",
+            "City": "",
+            "County": "",
+            "Zip Code": "",
+            "Country": "",
+            "State": "",
+            "Team IDs": set(),  # Sets ensure no duplicates are added to contact's information
+            "Programs": set(),
+        }
+    )
 
-    for c in contacts: # Adds contacts to record
+    for c in contacts:  # Adds contacts to record
         email = c["Email Address"]
-        record = email_dict[email] # References one's email as the start of a new contact's record
+        record = email_dict[
+            email
+        ]  # References one's email as the start of a new contact's record
         record["Email Address"] = email
         record["First Name"] = c["First Name"]
         record["Last name"] = c["Last name"]
@@ -78,37 +82,51 @@ def process_csv_file(filepath): # Processes CSV File
         record["Zip Code"] = c["Zip Code"]
         record["Country"] = c["Country"]
         record["State"] = c["State"]
-        record["Team IDs"].update(c["Team IDs"]) # Updates Team IDs so multiple team numbers can be added without duplication of existing ones
-        record["Programs"].update(c["Programs"]) # Updates existing program to avoid duplications
-    
+        record["Team IDs"].update(
+            c["Team IDs"]
+        )  # Updates Team IDs so multiple team numbers can be added without duplication of existing ones
+        record["Programs"].update(
+            c["Programs"]
+        )  # Updates existing program to avoid duplications
+
     output_rows = []
-    for contact in email_dict.values(): #Loop through every contact's information (record)
-        teams = list(contact["Team IDs"]) # Converts Team IDs to a list
+    for (
+        contact
+    ) in email_dict.values():  # Loop through every contact's information (record)
+        teams = list(contact["Team IDs"])  # Converts Team IDs to a list
         programs = list(contact["Programs"])
         tags = []
         affiliations = []
         for prog in programs:
-            tags.extend([prog, f"{prog} coach"]) # Adds coach to end of their program (FTC or FRC) for MailChimp tags
-            affiliations.append(f"{prog} Coach/Mentor") # Adds Coach/Mentor to program(s) for MailChimp Affiliations
-            
-            row = {
-    "Email Address": contact["Email Address"],
-    "First Name": contact["First Name"],
-    "Last name": contact["Last name"],
-    "Affiliation": ", ".join(affiliations), # Join strings together in case of multiple affiliations
-    "City": contact["City"],
-    "County": contact["County"],
-    "Zip Code": contact["Zip Code"],
-    "Team 1 Type & Number": teams[0] if len(teams) > 0 else "", # Adds multiple teams, leaves nonexistent teams empty
-    "Team 2 Type & Number": teams[1] if len(teams) > 1 else "",
-    "Team 3 Type & Number": teams[2] if len(teams) > 2 else "",
-    "Team 4 Type & Number": teams[3] if len(teams) > 3 else "",
-    "Country": contact["Country"],
-    "State": contact["State"],
-    "Tags": ", ".join(tags)
-}
+            tags.extend(
+                [prog, f"{prog} coach"]
+            )  # Adds coach to end of their program (FTC or FRC) for MailChimp tags
+            affiliations.append(
+                f"{prog} Coach/Mentor"
+            )  # Adds Coach/Mentor to program(s) for MailChimp Affiliations
 
-        output_rows.append(row) # Adds this row to list of all rows
+            row = {
+                "Email Address": contact["Email Address"],
+                "First Name": contact["First Name"],
+                "Last name": contact["Last name"],
+                "Affiliation": ", ".join(
+                    affiliations
+                ),  # Join strings together in case of multiple affiliations
+                "City": contact["City"],
+                "County": contact["County"],
+                "Zip Code": contact["Zip Code"],
+                "Team 1 Type & Number": (
+                    teams[0] if len(teams) > 0 else ""
+                ),  # Adds multiple teams, leaves nonexistent teams empty
+                "Team 2 Type & Number": teams[1] if len(teams) > 1 else "",
+                "Team 3 Type & Number": teams[2] if len(teams) > 2 else "",
+                "Team 4 Type & Number": teams[3] if len(teams) > 3 else "",
+                "Country": contact["Country"],
+                "State": contact["State"],
+                "Tags": ", ".join(tags),
+            }
+
+        output_rows.append(row)  # Adds this row to list of all rows
 
     output_df = pd.DataFrame(output_rows) # Converts rows into panda DataFrame
     output_file = os.path.join(os.path.dirname(filepath), "mailchimp_contacts.csv") # Constructs path for saving file in the same folder as original file, but renamed
