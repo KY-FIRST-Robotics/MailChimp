@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller build folders
+build/
+dist/
+
+# PyInstaller spec file
+*.spec
+
+# Virtual environment folders (optional, if you use venv)
+venv/
+.env/
+.envrc
+
+# IDE/editor folders (optional)
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs and temp files
+*.log
+*.tmp
